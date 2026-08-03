@@ -1,0 +1,530 @@
+<!-- Copyright (c) 2026 Minsun Kim. All rights reserved. See LICENSE. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Enterprise AI Governance Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --sidebar: #FFFFFF;
+    --card: #F5F6F8;
+    --border: #E4E6EB;
+    --text: #16181D;
+    --muted: #6B7280;
+    --accent: #5B4FE5;
+    --accent-bg: #EEECFC;
+    --low: #1E8E5A; --low-bg: #E3F6EC;
+    --medium: #B8710A; --medium-bg: #FCEFDA;
+    --high: #C4344A; --high-bg: #FBE6EA;
+    --sans: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.5; display:flex; min-height:100vh; font-size:14px; }
+  a { color: var(--accent); text-decoration:none; }
+
+  .sidebar { width:230px; flex-shrink:0; border-right:1px solid var(--border); padding:24px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar-header { padding:0 8px 20px; }
+  .sidebar-header .name { font-weight:700; font-size:16px; }
+  .sidebar-header .sub { font-size:12px; color:var(--muted); margin-top:3px; }
+  .nav-item { display:block; padding:10px 12px; margin-bottom:2px; border-radius:8px; cursor:pointer; font-size:14px; color:#3A3D46; }
+  .nav-item:hover { background:#F5F6F8; }
+  .nav-item.active { background:var(--accent-bg); color:var(--accent); font-weight:600; }
+
+  .main-content { flex:1; min-width:0; padding:30px 44px 60px; max-width:1500px; }
+  .topbar { margin-bottom:18px; }
+  .topbar h1 { font-size:26px; font-weight:700; margin:0; display:inline-block; }
+  .badge { display:inline-block; background:var(--accent-bg); color:var(--accent); font-size:12px; font-weight:600; padding:3px 10px; border-radius:6px; margin-left:10px; vertical-align:middle; }
+  .topbar .desc { color:var(--muted); font-size:14px; margin-top:8px; max-width:900px; }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  @media (max-width:1100px) { .grid-3 { grid-template-columns:1fr; } .grid-2 { grid-template-columns:1fr; } }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+  .card-title { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:#3A3D46; margin:0 0 14px; text-transform:uppercase; letter-spacing:0.02em; }
+  .card-title .num { width:20px; height:20px; border-radius:50%; background:#20222A; color:#fff; font-size:11px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .risk-pill { display:inline-block; font-size:12px; font-weight:700; padding:3px 12px; border-radius:6px; }
+  .risk-Low { background:var(--low-bg); color:var(--low); }
+  .risk-Medium { background:var(--medium-bg); color:var(--medium); }
+  .risk-High { background:var(--high-bg); color:var(--high); }
+
+  .activity-row { display:flex; align-items:baseline; gap:8px; padding:7px 0; font-size:13.5px; }
+  .activity-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .dot-red { background:#C4344A; } .dot-green { background:#1E8E5A; } .dot-amber { background:#B8710A; }
+  .activity-time { color:var(--muted); font-size:12px; margin-left:auto; white-space:nowrap; }
+
+  .list-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; font-size:14px; border-bottom:1px solid var(--border); }
+  .list-row:last-child { border-bottom:none; }
+  .list-row.clickable { cursor:pointer; }
+  .list-row.clickable:hover { color:var(--accent); }
+
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th { text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.03em; padding:8px 10px; border-bottom:1px solid var(--border); }
+  td { padding:10px; border-bottom:1px solid var(--border); }
+
+  .stat-box { background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 18px; text-align:center; }
+  .stat-box .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.03em; }
+  .stat-box .val { font-size:26px; font-weight:700; margin-top:2px; }
+
+  label { display:block; font-size:13px; font-weight:600; color:#2B2D33; margin:16px 0 6px; }
+  input[type=text], select, textarea {
+    width:100%; background:#F5F6F8; border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:10px 12px; font-family:var(--sans); font-size:14px;
+  }
+  textarea { min-height:60px; resize:vertical; }
+  .factors-box { border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+  .factor-row { display:flex; align-items:center; gap:8px; font-size:13.5px; padding:6px 0; }
+  .factor-row input { width:auto; }
+  .factor-row.on { color:var(--low); font-weight:600; }
+  .checklist { display:grid; grid-template-columns:1fr 1fr; gap:2px 20px; }
+  .checklist label { font-weight:400; font-size:13px; margin:4px 0; display:flex; align-items:center; gap:6px; }
+  .checklist label input { width:auto; margin:0; }
+
+  button.primary { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:12px 20px; font-weight:600; font-size:14px; cursor:pointer; }
+  button.primary:hover { filter:brightness(1.08); }
+  button.primary:disabled { opacity:0.5; }
+  .mock-flag { color:var(--medium); font-size:12px; margin-top:10px; }
+
+  .selector-bar { margin-bottom:16px; max-width:420px; }
+
+  .analysis-grid { display:grid; grid-template-columns:0.9fr 1.6fr 0.9fr; gap:20px; }
+  @media (max-width:1000px) { .analysis-grid { grid-template-columns:1fr; } }
+  .why-row { font-size:13px; color:#3A3D46; padding:2px 0; }
+  .meta-row { display:flex; justify-content:space-between; font-size:13px; padding:6px 0; }
+  .meta-row .k { color:var(--muted); }
+  .action-group-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--muted); margin:12px 0 8px; }
+  .action-item { font-size:13.5px; padding:5px 0; }
+  .action-item .trig { display:block; font-size:11.5px; color:var(--muted); margin-top:1px; }
+  .analysis-buttons { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .analysis-buttons button { padding:10px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-solid { background:var(--accent); color:#fff; border:none; }
+  .btn-outline { background:#fff; color:var(--accent); border:1px solid var(--accent); }
+  .btn-disabled { background:#fff; color:var(--muted); border:1px dashed var(--border); cursor:not-allowed; }
+  .residual-note { font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+  .manifest-box { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 14px; font-family:'SFMono-Regular',Consolas,monospace; font-size:12px; color:#3A3D46; white-space:pre-wrap; max-height:260px; overflow:auto; margin-top:10px; }
+  .gate-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; margin-top:6px; font-size:13px; }
+  .gate-chip { font-size:11px; font-weight:700; padding:3px 8px; border-radius:5px; }
+  .gate-allow { background:var(--low-bg); color:var(--low); }
+  .gate-deny { background:var(--high-bg); color:var(--high); }
+
+  .empty { color:var(--muted); font-size:13.5px; }
+  .footer-note { color:var(--muted); font-size:12.5px; margin-top:14px; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="name">Enterprise AI Governance Studio</div>
+    <div class="sub">Wireframe implementation · PRD v1.6</div>
+  </div>
+  <div class="nav-item active" data-page="overview" onclick="goToPage('overview')">Overview</div>
+  <div class="nav-item" data-page="intake" onclick="goToPage('intake')">New Intake</div>
+  <div class="nav-item" data-page="risk" onclick="goToPage('risk')">Risk Assessment</div>
+  <div class="nav-item" data-page="audit" onclick="goToPage('audit')">Audit Trail</div>
+  <div class="nav-item" data-page="playbooks" onclick="goToPage('playbooks')">Playbooks</div>
+</nav>
+
+<div class="main-content">
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="page active" id="page-overview">
+    <div class="topbar">
+      <h1>Overview</h1><span class="badge">F-01–F-04, F-07</span>
+      <div class="desc">Portfolio-level snapshot across every evaluated use case, plus a drill-down into whichever intake is selected from "My AI Governance List" below. The drill-down reuses the same risk/Playbook card used elsewhere — it is not a duplicate feature, it's the same component surfaced in context.</div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title"><span class="num">1</span> Risk Distribution</div>
+        <div id="riskDonut" style="display:flex; align-items:center; gap:16px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="num">2</span> Recent Activity</div>
+        <div id="recentActivity" class="empty">Loading…</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="num">3</span> Top AI Systems by Risk</div>
+        <div id="topSystems" class="empty">Loading…</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span class="num">4</span> System Quality Telemetry — not built</div>
+      <p class="empty" style="margin:0;">This project intentionally does not display groundedness/hallucination/latency metrics here — those require production LLM traffic this portfolio project doesn't have. See Section 06A for the two metrics that <em>are</em> actually measured (schema validity, policy denial accuracy) — shown below in Playbooks/Risk Assessment, not fabricated here.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="num">5</span> My AI Governance List</div>
+      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+        <select id="ovSelect" onchange="onOverviewSelect()" style="max-width:340px;"></select>
+        <div class="stat-box"><div class="lbl">Total list</div><div class="val" id="statTotal">—</div></div>
+        <div class="stat-box"><div class="lbl">Active</div><div class="val" id="statActive">—</div></div>
+        <div class="stat-box"><div class="lbl">Completed</div><div class="val" id="statCompleted">—</div></div>
+      </div>
+    </div>
+
+    <p style="color:var(--muted); font-size:12.5px; margin:16px 0 6px;">↓ Selected intake — reuses the Playbook engine (F-07)</p>
+    <div class="card" id="ovDrilldown"><div class="empty">Select a use case above.</div></div>
+  </section>
+
+  <!-- ===================== NEW INTAKE ===================== -->
+  <section class="page" id="page-intake">
+    <div class="topbar">
+      <h1>New Intake</h1><span class="badge">F-01, F-02, F-03</span>
+      <div class="desc">Submitting this form runs the same Pydantic-validated schema (F-01) that risk scoring, policy generation, and the MCP gate all consume downstream — one shared contract, not four separate ones.</div>
+    </div>
+
+    <div class="grid-2" style="align-items:start;">
+      <div class="card">
+        <label>Name*</label>
+        <input type="text" id="in_name" placeholder="Use case name" />
+        <label>Email*</label>
+        <input type="text" id="in_email" placeholder="you@company.com" />
+        <label>Business Unit*</label>
+        <input type="text" id="in_unit" placeholder="e.g. Finance" />
+        <label>Business Goal</label>
+        <input type="text" id="in_goal" placeholder="What outcome is this for?" />
+        <label>Use Case Description (min 50 chars)*</label>
+        <textarea id="in_desc" placeholder="Describe what the AI does and why it's needed."></textarea>
+
+        <label style="margin-top:20px;">Risk Factors (AI-suggested)* — 8 governance dimensions, F-02</label>
+        <div class="factors-box" id="factors">
+          <div class="checklist">
+            <label><input type="checkbox" data-factor="personal_data_privacy"/> Personal Data / Privacy (20 pts)</label>
+            <label><input type="checkbox" data-factor="autonomous_decision_making"/> Autonomous Decision Making (20 pts)</label>
+            <label><input type="checkbox" data-factor="sensitive_data_enterprise_ip"/> Sensitive Data / Enterprise IP (20 pts)</label>
+            <label><input type="checkbox" data-factor="high_impact_domain"/> High-Impact Domain (20 pts)</label>
+            <label><input type="checkbox" data-factor="external_users_reputation"/> External Users / Reputation (15 pts)</label>
+            <label><input type="checkbox" data-factor="model_transparency"/> Model Transparency (15 pts)</label>
+            <label><input type="checkbox" data-factor="security_exposure"/> Security Exposure (10 pts)</label>
+            <label><input type="checkbox" data-factor="third_party_dependency"/> Third-Party Dependency (10 pts)</label>
+          </div>
+        </div>
+
+        <label>Technical Evidence (e.g. repository URL, GitHub link)</label>
+        <input type="text" id="in_evidence" placeholder="https://github.com/…" />
+        <label>Other (file upload — prompt template, architecture diagram, other supporting files)</label>
+        <input type="text" id="in_other" placeholder="Not processed in this MVP — F-10 Tier 1 stores links only" disabled />
+
+        <div class="grid-2" style="margin-top:6px;">
+          <div>
+            <label>Foundation Model</label>
+            <label style="font-weight:400"><input type="checkbox" data-fm="GPT-4.1"/> GPT-4.1</label>
+            <label style="font-weight:400"><input type="checkbox" data-fm="Claude 4"/> Claude 4</label>
+            <label style="font-weight:400"><input type="checkbox" data-fm="Gemini 2.5"/> Gemini 2.5</label>
+            <label style="font-weight:400"><input type="checkbox" data-fm="Llama 4"/> Llama 4</label>
+          </div>
+          <div>
+            <label>Applicable Enterprise Policies</label>
+            <label style="font-weight:400"><input type="checkbox" data-pol="AI Policy"/> AI Policy</label>
+            <label style="font-weight:400"><input type="checkbox" data-pol="Security Policy"/> Security Policy</label>
+            <label style="font-weight:400"><input type="checkbox" data-pol="Privacy Policy"/> Privacy Policy</label>
+          </div>
+        </div>
+
+        <button class="primary" id="submitBtn" style="width:100%; margin-top:20px;" onclick="submitIntake()">Run Governance Workflow</button>
+        <div class="mock-flag" id="apiFlag"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">AI Analysis Summary</div>
+        <div id="intakeAnalysis" class="empty">Run the workflow at left to see the analysis →</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RISK ASSESSMENT ===================== -->
+  <section class="page" id="page-risk">
+    <div class="topbar">
+      <h1>Risk Assessment</h1><span class="badge">F-02</span>
+      <div class="desc">Browse the risk profile of any past intake. This is a history/browse surface, distinct from Overview's embedded snapshot and New Intake's live run — but it deliberately reuses the same analysis card so the output never looks different depending on where you view it.</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title"><span class="num">1</span> My AI Governance List</div>
+      <div id="raList"></div>
+      <select id="raSelect" onchange="onRaSelect()" style="margin-top:12px; max-width:420px;"></select>
+    </div>
+
+    <div class="card" id="raDetail"><div class="empty">Select a use case above to view its risk assessment.</div></div>
+  </section>
+
+  <!-- ===================== AUDIT TRAIL ===================== -->
+  <section class="page" id="page-audit">
+    <div class="topbar">
+      <h1>Audit Trail</h1><span class="badge">F-04</span>
+      <div class="desc">Every assessment logged with timestamp, action, level, and owner.</div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Use case</th><th>Action</th><th>Level</th><th>Owner</th></tr></thead>
+        <tbody id="auditBody"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="footer-note">Not yet built: dual sign-off for High-risk use cases; PDF export (P1, Phase 2 — F-04).</p>
+  </section>
+
+  <!-- ===================== PLAYBOOKS ===================== -->
+  <section class="page" id="page-playbooks">
+    <div class="topbar">
+      <h1>Playbooks</h1><span class="badge">F-07</span>
+      <div class="desc">Risk score translated into a control checklist, owner, and review cadence. Deterministic code, not an LLM call.</div>
+    </div>
+    <select id="pbSelect" onchange="onPbSelect()" class="selector-bar"></select>
+    <div class="card" id="pbDetail"><div class="empty">Select a use case above.</div></div>
+  </section>
+
+</div>
+
+<script>
+const API_BASE = window.API_BASE || 'http://localhost:8000';
+let allUseCases = [];
+
+function goToPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  if (page === 'overview') refreshOverview();
+  if (page === 'risk') refreshRisk();
+  if (page === 'audit') refreshAudit();
+  if (page === 'playbooks') refreshPlaybooks();
+}
+
+async function fetchOverviewData() {
+  const res = await fetch(`${API_BASE}/api/overview`);
+  const data = await res.json();
+  allUseCases = data.use_cases_by_risk;
+  return data;
+}
+
+function fillSelect(sel, selected) {
+  sel.innerHTML = '<option value="">Select a use case</option>' + allUseCases.map(u =>
+    `<option value="${u.use_case_name}" ${u.use_case_name===selected?'selected':''}>${u.use_case_name} — ${u.risk_level}</option>`).join('');
+}
+
+// ---------- Overview ----------
+async function refreshOverview() {
+  const data = await fetchOverviewData();
+
+  const dist = data.risk_distribution;
+  const total = dist.Low + dist.Medium + dist.High || 1;
+  const donutHtml = `
+    <svg width="110" height="110" viewBox="0 0 42 42">
+      <circle cx="21" cy="21" r="15.9" fill="none" stroke="#E4E6EB" stroke-width="6"></circle>
+      <circle cx="21" cy="21" r="15.9" fill="none" stroke="#C4344A" stroke-width="6"
+        stroke-dasharray="${100*dist.High/total} ${100-100*dist.High/total}" stroke-dashoffset="25"></circle>
+      <circle cx="21" cy="21" r="15.9" fill="none" stroke="#B8710A" stroke-width="6"
+        stroke-dasharray="${100*dist.Medium/total} ${100-100*dist.Medium/total}" stroke-dashoffset="${25-100*dist.High/total}"></circle>
+      <circle cx="21" cy="21" r="15.9" fill="none" stroke="#1E8E5A" stroke-width="6"
+        stroke-dasharray="${100*dist.Low/total} ${100-100*dist.Low/total}" stroke-dashoffset="${25-100*dist.High/total-100*dist.Medium/total}"></circle>
+      <text x="21" y="19" text-anchor="middle" font-size="8" font-weight="700">${data.total_use_cases}</text>
+      <text x="21" y="26" text-anchor="middle" font-size="3.6" fill="#6B7280">Total</text>
+    </svg>
+    <div style="font-size:12.5px;">
+      <div><span class="risk-pill risk-High">High ${dist.High}</span></div>
+      <div style="margin-top:5px;"><span class="risk-pill risk-Medium">Medium ${dist.Medium}</span></div>
+      <div style="margin-top:5px;"><span class="risk-pill risk-Low">Low ${dist.Low}</span></div>
+    </div>`;
+  document.getElementById('riskDonut').innerHTML = donutHtml;
+
+  document.getElementById('recentActivity').innerHTML = data.recent_activity.map(e => {
+    const dotClass = e.type.includes('denied') ? 'dot-red' : e.type.includes('allowed') || e.type.includes('validation') ? 'dot-green' : 'dot-amber';
+    return `<div class="activity-row"><span class="activity-dot ${dotClass}"></span><span>${e.type} · <span style="color:var(--muted)">${e.use_case_name}</span></span></div>`;
+  }).join('') || '<div class="empty">No activity yet.</div>';
+
+  document.getElementById('topSystems').innerHTML = data.use_cases_by_risk.slice(0, 4).map(u =>
+    `<div class="list-row"><span>${u.use_case_name}</span><span class="risk-pill risk-${u.risk_level}">${u.risk_level}</span></div>`
+  ).join('') || '<div class="empty">No use cases yet.</div>';
+
+  document.getElementById('statTotal').textContent = data.total_use_cases;
+  document.getElementById('statActive').textContent = data.active_count ?? data.total_use_cases;
+  document.getElementById('statCompleted').textContent = data.completed_count ?? 0;
+
+  fillSelect(document.getElementById('ovSelect'), null);
+}
+
+async function onOverviewSelect() {
+  const name = document.getElementById('ovSelect').value;
+  if (!name) { document.getElementById('ovDrilldown').innerHTML = '<div class="empty">Select a use case above.</div>'; return; }
+  const detail = await fetchUseCase(name);
+  renderAnalysisCard(document.getElementById('ovDrilldown'), detail);
+}
+
+// ---------- Shared detail fetch + render ----------
+async function fetchUseCase(name) {
+  const res = await fetch(`${API_BASE}/api/use-case/${encodeURIComponent(name)}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+function renderAnalysisCard(container, detail) {
+  const { intake, risk, action_plan, manifest } = detail;
+  const technical = action_plan.action_items.filter(i => i.category === 'Technical');
+  const business = action_plan.action_items.filter(i => i.category === 'Business');
+
+  const whyRows = risk.breakdown.filter(b => b.active).map(b => `<div class="why-row">· ${b.factor}</div>`).join('') || '<div class="why-row">No risk factors active.</div>';
+
+  const group = (label, items) => items.length ? `
+    <div class="action-group-label">${label}</div>
+    ${items.map(i => `<div class="action-item">✓ ${i.label}<span class="trig">— triggered by ${i.triggered_by}</span></div>`).join('')}` : '';
+
+  container.innerHTML = `
+    <div class="card-title">Risk Level ${risk.risk_level.toUpperCase()} · ${intake.use_case_name}</div>
+    <div class="analysis-grid">
+      <div>
+        <span class="risk-pill risk-${risk.risk_level}">${risk.risk_level.toUpperCase()}</span>
+        <div style="margin-top:10px; font-size:26px; font-weight:700;">${risk.total_score}<span style="font-size:14px;color:var(--muted)">/130</span></div>
+        <div class="action-group-label" style="margin-top:14px;">Why this risk?</div>
+        ${whyRows}
+      </div>
+      <div>
+        <div class="action-group-label" style="margin-top:0;">Recommended Actions</div>
+        ${group('Technical', technical)}
+        ${group('Business', business)}
+      </div>
+      <div>
+        <div class="meta-row"><span class="k">Owner</span><span>${action_plan.suggested_owner}</span></div>
+        <div class="meta-row"><span class="k">Review cadence</span><span>every ${action_plan.review_cadence_days} days</span></div>
+        <div class="meta-row"><span class="k">Estimated Residual Risk</span><span class="risk-pill risk-${action_plan.estimated_residual_risk}">${action_plan.estimated_residual_risk}</span></div>
+        <p class="residual-note">Illustrative one-tier-down heuristic assuming controls are applied — not a measured outcome (Section 06A).</p>
+        <div class="analysis-buttons">
+          <button class="btn-solid" onclick='togglePolicy(this, ${JSON.stringify(manifest).replace(/'/g, "&#39;")})'>Generate Policy</button>
+          <button class="btn-outline" onclick="requestApproval('${intake.use_case_name.replace(/'/g,"\\'")}')">Request Approval</button>
+          <button class="btn-disabled" disabled title="Roadmap P1 — F-04">Export Data (Phase 2)</button>
+        </div>
+        <div class="policy-slot"></div>
+      </div>
+    </div>`;
+}
+
+function togglePolicy(btn, manifest) {
+  const slot = btn.closest('.analysis-grid').querySelector('.policy-slot');
+  if (slot.innerHTML) { slot.innerHTML = ''; return; }
+  const gateRows = manifest.mcp_tool_policies.map(p => `
+    <div class="gate-row">
+      <span class="gate-chip ${p.allowed ? 'gate-allow' : 'gate-deny'}">${p.allowed ? 'ALLOW' : 'DENY'}</span>
+      <span>${p.tool_category}</span>
+      <span style="color:var(--muted); font-size:12px;">${p.condition}</span>
+    </div>`).join('');
+  slot.innerHTML = `
+    <div class="action-group-label" style="margin-top:14px;">Policy Manifest (F-03)</div>
+    <p style="font-size:12.5px; color:var(--muted);">${manifest.governance_narrative}</p>
+    <p style="font-size:12px; color:var(--muted);"><strong>Frameworks:</strong> ${manifest.applicable_frameworks.join(', ')}</p>
+    <div class="manifest-box">${JSON.stringify({controls: manifest.controls}, null, 2)}</div>
+    <div class="action-group-label" style="margin-top:14px;">MCP Gate (runtime enforcement)</div>
+    ${gateRows}`;
+}
+
+async function requestApproval(useCaseName) {
+  await fetch(`${API_BASE}/api/hitl-decision`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ use_case_name: useCaseName, reviewer_id: 'demo-reviewer', decision: 'Conditional Approve', notes: 'Requested via demo UI' })
+  });
+  alert('HITL decision recorded for ' + useCaseName + ' (see Audit Trail / Overview "Completed" count).');
+  refreshOverview();
+}
+
+// ---------- New Intake ----------
+function collectFactors() {
+  const out = {};
+  document.querySelectorAll('#factors input[type=checkbox]').forEach(cb => { out[cb.dataset.factor] = cb.checked; });
+  return out;
+}
+function collectChecked(selector, attr) {
+  return Array.from(document.querySelectorAll(selector)).filter(cb => cb.checked).map(cb => cb.dataset[attr]);
+}
+
+async function submitIntake() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Running workflow…';
+
+  const policies = collectChecked('[data-pol]', 'pol');
+  const models = collectChecked('[data-fm]', 'fm');
+
+  const payload = {
+    use_case_name: document.getElementById('in_name').value || 'Untitled Use Case',
+    business_unit: document.getElementById('in_unit').value || 'Unassigned',
+    email: document.getElementById('in_email').value || null,
+    business_goal: document.getElementById('in_goal').value || null,
+    description: document.getElementById('in_desc').value || 'No description provided.',
+    problem_statement: (document.getElementById('in_desc').value || '').padEnd(50, '.'),
+    technical_evidence_url: document.getElementById('in_evidence').value || null,
+    foundation_model: models.join(', ') || null,
+    enterprise_policies: policies,
+    ...collectFactors()
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/intake?requested_tool_category=sql_read`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    document.getElementById('apiFlag').textContent = data.manifest.governance_narrative.startsWith('[MOCK')
+      ? '⚠ Mock LLM response — set ANTHROPIC_API_KEY on the backend for live output.'
+      : '✓ Live LLM response from Anthropic API.';
+
+    renderAnalysisCard(document.getElementById('intakeAnalysis'), {
+      intake: payload, risk: data.risk, action_plan: data.action_plan, manifest: data.manifest
+    });
+  } catch (err) {
+    document.getElementById('apiFlag').innerHTML = `<span style="color:var(--high)">Could not reach the API at ${API_BASE}: ${err.message}</span>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Run Governance Workflow';
+  }
+}
+
+// ---------- Risk Assessment ----------
+async function refreshRisk() {
+  const data = await fetchOverviewData();
+  document.getElementById('raList').innerHTML = data.use_cases_by_risk.slice(0,3).map(u =>
+    `<div class="list-row">${u.use_case_name}<span class="risk-pill risk-${u.risk_level}">${u.risk_level}</span></div>`).join('');
+  fillSelect(document.getElementById('raSelect'), null);
+  document.getElementById('raDetail').innerHTML = '<div class="empty">Select a use case above to view its risk assessment.</div>';
+}
+async function onRaSelect() {
+  const name = document.getElementById('raSelect').value;
+  if (!name) return;
+  const detail = await fetchUseCase(name);
+  renderAnalysisCard(document.getElementById('raDetail'), detail);
+}
+
+// ---------- Audit Trail ----------
+async function refreshAudit() {
+  const res = await fetch(`${API_BASE}/api/audit`);
+  const rows = await res.json();
+  document.getElementById('auditBody').innerHTML = rows.map(r => `
+    <tr><td>${r.use_case_name}</td><td>${r.recent_action || 'Manifest generated & schema-validated'}</td>
+    <td><span class="risk-pill risk-${r.risk_level}">${r.risk_level}</span></td><td>${r.suggested_owner}</td></tr>`
+  ).join('') || '<tr><td colspan="4" class="empty">No assessments yet.</td></tr>';
+}
+
+// ---------- Playbooks ----------
+async function refreshPlaybooks() {
+  await fetchOverviewData();
+  fillSelect(document.getElementById('pbSelect'), null);
+  document.getElementById('pbDetail').innerHTML = '<div class="empty">Select a use case above.</div>';
+}
+async function onPbSelect() {
+  const name = document.getElementById('pbSelect').value;
+  if (!name) return;
+  const detail = await fetchUseCase(name);
+  renderAnalysisCard(document.getElementById('pbDetail'), detail);
+}
+
+// ---------- Init ----------
+refreshOverview();
+</script>
+</body>
+</html>
