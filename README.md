@@ -1,4 +1,10 @@
 # Enterprise AI Governance Studio
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Available-2563EB?style=for-the-badge)](https://kimx0926.github.io/AI-Governance-Studio/docs/live-demo/)
+[![PRD](https://img.shields.io/badge/Full%20PRD-PDF-0A0F2E?style=for-the-badge)](https://kimx0926.github.io/AI-Governance-Studio/docs/PRD/AI_Governance_Studio_PRD.pdf)
+
+> 🔗 **[→ Open Live Demo](https://kimx0926.github.io/AI-Governance-Studio/docs/live-demo/)** · **[→ Read Full PRD](https://kimx0926.github.io/AI-Governance-Studio/docs/PRD/AI_Governance_Studio_PRD.pdf)**
+
+![AI Governance Studio](https://github.com/user-attachments/assets/d575dc26-60bd-42f3-86b0-9dc51b34cf40)
 
 A working implementation of an enterprise AI governance workflow: **intake → deterministic risk scoring → risk-to-Playbook translation → policy-as-code generation → MCP tool-calling gate → HITL audit trail.**
 
